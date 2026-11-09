@@ -62,13 +62,17 @@ jobs:
         with:
           name: tool-${{ matrix.platform }}
           path: "dist/studyforge-executa-*.tar.gz"
-      - name: Activate binary profile
+      - name: Reduce binary artifacts to this platform
         shell: bash
         run: |
           python - <<'PYEOF'
           import json
+          PLATFORM = "${{ matrix.platform }}"
           m = json.load(open("executa.json"))
+          arts = m["distribution"]["profiles"]["binary"]["binary_artifacts"]
+          kept = {PLATFORM: arts[PLATFORM]}
           m["distribution"] = m["distribution"]["profiles"]["binary"]
+          m["distribution"]["binary_artifacts"] = kept
           json.dump(m, open("executa.json", "w"), indent=2)
           PYEOF
       - name: Upload to Anna (OIDC)
