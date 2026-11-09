@@ -1,0 +1,69 @@
+name: build
+on:
+  push:
+    tags:
+      - "v*"
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  build:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-latest, platform: linux-x86_64 }
+          - { runner: macos-13, platform: darwin-x86_64 }
+          - { runner: macos-14, platform: darwin-arm64 }
+          - { runner: windows-latest, platform: windows-x86_64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PyInstaller
+        run: python -m pip install pyinstaller
+      - name: Build single-file binary
+        shell: bash
+        run: pyinstaller --onefile --name studyforge-executa --paths . --clean --noconfirm studyforge_plugin.py
+      - name: Package archive
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          EXE="studyforge-executa"
+          if [ "${{ matrix.platform }}" = "windows-x86_64" ]; then EXE="studyforge-executa.exe"; fi
+          mkdir -p pkg
+          cp "dist/$EXE" "pkg/$EXE"
+          python - <<'PYEOF'
+          import json, os
+          ver = os.environ["GITHUB_REF_NAME"].lstrip("v")
+          m = {
+              "name": "studyforge-executa",
+              "version": ver,
+              "runtime": {
+                  "binary": {
+                      "entrypoint": {
+                          "default": "studyforge-executa",
+                          "windows-x86_64": "studyforge-executa.exe",
+                          "windows-arm64": "studyforge-executa.exe",
+                      },
+                      "permissions": {"studyforge-executa": "0o755"},
+                  }
+              },
+          }
+          open("pkg/manifest.json", "w").write(json.dumps(m, indent=2))
+          PYEOF
+          mv pkg dist/pkg
+          tar -czf "dist/studyforge-executa-${VERSION}-${{ matrix.platform }}.tar.gz" -C dist/pkg .
+          rm -rf pkg
+      - name: Upload archive as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tool-${{ matrix.platform }}
+          path: "dist/studyforge-executa-*.tar.gz"
+      - name: Upload to Anna (OIDC)
+        shell: bash
+        run: |
+          npm i -g @anna-ai/cli@0.1.63
+          npx anna-app executa upload-binaries --oidc --host https://anna.partners --dir "$PWD" --tool-id "${{ vars.ANNA_TOOL_ID }}"

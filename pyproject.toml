@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tool-dev-studyforge"
+version = "0.1.0"
+description = "StudyForge Executa plugin: grounded study packs from notes."
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "anna-executa-test>=0.1.1",
+]
+
+[project.scripts]
+"tool-dev-studyforge" = "studyforge_plugin:main"
+
+[tool.setuptools]
+py-modules = ["studyforge_plugin"]
+
+[tool.setuptools.packages.find]
+include = ["studyforge_core*"]
