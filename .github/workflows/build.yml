@@ -62,6 +62,15 @@ jobs:
         with:
           name: tool-${{ matrix.platform }}
           path: "dist/studyforge-executa-*.tar.gz"
+      - name: Activate binary profile
+        shell: bash
+        run: |
+          python - <<'PYEOF'
+          import json
+          m = json.load(open("executa.json"))
+          m["distribution"] = m["distribution"]["profiles"]["binary"]
+          json.dump(m, open("executa.json", "w"), indent=2)
+          PYEOF
       - name: Upload to Anna (OIDC)
         shell: bash
         run: |
