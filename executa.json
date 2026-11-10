@@ -22,14 +22,6 @@
             "path": "dist/studyforge-executa-{version}-linux-x86_64.tar.gz",
             "entrypoint": "studyforge-executa"
           },
-          "darwin-x86_64": {
-            "path": "dist/studyforge-executa-{version}-darwin-x86_64.tar.gz",
-            "entrypoint": "studyforge-executa"
-          },
-          "darwin-arm64": {
-            "path": "dist/studyforge-executa-{version}-darwin-arm64.tar.gz",
-            "entrypoint": "studyforge-executa"
-          },
           "windows-x86_64": {
             "path": "dist/studyforge-executa-{version}-windows-x86_64.tar.gz",
             "entrypoint": "studyforge-executa.exe",
